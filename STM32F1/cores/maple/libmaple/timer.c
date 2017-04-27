@@ -215,7 +215,8 @@ void timer_disable(timer_dev *dev) {
  * @param mode New timer mode for channel
  */
 void timer_set_mode(timer_dev *dev, uint8 channel, timer_mode mode) {
-    ASSERT_FAULT(channel > 0 && channel <= 4);
+    // channel does not matter for TIMER_ENCODER mode
+    ASSERT_FAULT((mode==TIMER_ENCODER)||(channel > 0 && channel <= 4));
 
     /* TODO decide about the basic timers */
     ASSERT(dev->type != TIMER_BASIC);
