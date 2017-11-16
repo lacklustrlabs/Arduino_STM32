@@ -292,7 +292,8 @@ void SPIClass::endTransaction(void)
 
 uint16 SPIClass::read(void)
 {
-    while ( spi_is_rx_nonempty(_currentSetting->spi_d)==0 ) ;
+    while ( spi_is_rx_nonempty(_currentSetting->spi_d)==0 )
+        ;
     return (uint16)spi_rx_reg(_currentSetting->spi_d);
 }
 
@@ -305,15 +306,18 @@ void SPIClass::read(uint8 *buf, uint32 len)
     regs->DR = 0x00FF;						// write the first byte
     // main loop
     while ( (--len) ) {
-        while( !(regs->SR & SPI_SR_TXE) );		// wait for TXE flag
+        while( !(regs->SR & SPI_SR_TXE) )		// wait for TXE flag
+            ;
         noInterrupts();							// go atomic level - avoid interrupts to surely get the previously received data
         regs->DR = 0x00FF;						// write the next data item to be transmitted into the SPI_DR register. This clears the TXE flag.
-        while ( !(regs->SR & SPI_SR_RXNE) );	// wait till data is available in the DR register
+        while ( !(regs->SR & SPI_SR_RXNE) ) 	// wait till data is available in the DR register
+            ;
         *buf++ = (uint8)(regs->DR);				// read and store the received byte. This clears the RXNE flag.
         interrupts();							// let systick do its job
     }
     // read remaining last byte
-    while ( !(regs->SR & SPI_SR_RXNE) );	// wait till data is available in the Rx register
+    while ( !(regs->SR & SPI_SR_RXNE) )	// wait till data is available in the Rx register
+        ;
     *buf++ = (uint8)(regs->DR);				// read and store the received byte
 }
 
@@ -325,18 +329,23 @@ void SPIClass::write(uint16 data)
      * This almost doubles the speed of this function.
      */
     spi_tx_reg(_currentSetting->spi_d, data); // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
-    while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // "5. Wait until TXE=1 ..."
-    while (spi_is_busy(_currentSetting->spi_d) != 0); // "... and then wait until BSY=0 before disabling the SPI." 
+    while (spi_is_tx_empty(_currentSetting->spi_d) == 0) // "5. Wait until TXE=1 ..."
+        ;
+    while (spi_is_busy(_currentSetting->spi_d) != 0) // "... and then wait until BSY=0 before disabling the SPI."
+        ;
 }
 
 void SPIClass::write16(uint16 data)
 {
     // Added by stevestrong: write two consecutive bytes in 8 bit mode (DFF=0)
     spi_tx_reg(_currentSetting->spi_d, data>>8); // write high byte
-    while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // Wait until TXE=1
+    while (spi_is_tx_empty(_currentSetting->spi_d) == 0) // Wait until TXE=1
+        ;
     spi_tx_reg(_currentSetting->spi_d, data); // write low byte
-    while (spi_is_tx_empty(_currentSetting->spi_d) == 0); // Wait until TXE=1
-    while (spi_is_busy(_currentSetting->spi_d) != 0); // wait until BSY=0
+    while (spi_is_tx_empty(_currentSetting->spi_d) == 0) // Wait until TXE=1
+        ;
+    while (spi_is_busy(_currentSetting->spi_d) != 0) // wait until BSY=0
+        ;
 }
 
 void SPIClass::write(uint16 data, uint32 n)
@@ -345,17 +354,21 @@ void SPIClass::write(uint16 data, uint32 n)
     spi_reg_map * regs = _currentSetting->spi_d->regs;
     while ( (n--)>0 ) {
         regs->DR = data; // write the data to be transmitted into the SPI_DR register (this clears the TXE flag)
-        while ( (regs->SR & SPI_SR_TXE)==0 ) ; // wait till Tx empty
+        while ( (regs->SR & SPI_SR_TXE)==0 ) // wait till Tx empty
+            ;
     }
-    while ( (regs->SR & SPI_SR_BSY) != 0); // wait until BSY=0 before returning 
+    while ( (regs->SR & SPI_SR_BSY) != 0) // wait until BSY=0 before returning 
+        ;
 }
 
 void SPIClass::write(const void *data, uint32 length)
 {
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_tx(spi_d, data, length); // data can be array of bytes or words
-    while (spi_is_tx_empty(spi_d) == 0); // "5. Wait until TXE=1 ..."
-    while (spi_is_busy(spi_d) != 0); // "... and then wait until BSY=0 before disabling the SPI."
+    while (spi_is_tx_empty(spi_d) == 0) // "5. Wait until TXE=1 ..."
+        ;
+    while (spi_is_busy(spi_d) != 0) // "... and then wait until BSY=0 before disabling the SPI."
+        ;
 }
 
 uint8 SPIClass::transfer(uint8 byte) const
@@ -363,8 +376,10 @@ uint8 SPIClass::transfer(uint8 byte) const
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_rx_reg(spi_d); // read any previous data
     spi_tx_reg(spi_d, byte); // Write the data item to be transmitted into the SPI_DR register
-    while (spi_is_tx_empty(spi_d) == 0); // "5. Wait until TXE=1 ..."
-    while (spi_is_busy(spi_d) != 0); // "... and then wait until BSY=0 before disabling the SPI."
+    while (spi_is_tx_empty(spi_d) == 0) // "5. Wait until TXE=1 ..."
+        ;
+    while (spi_is_busy(spi_d) != 0) // "... and then wait until BSY=0 before disabling the SPI."
+        ;
     return (uint8)spi_rx_reg(spi_d); // "... and read the last received data."
 }
 
@@ -375,12 +390,16 @@ uint16_t SPIClass::transfer16(uint16_t data) const
     spi_dev * spi_d = _currentSetting->spi_d;
     spi_rx_reg(spi_d);                   // read any previous data
     spi_tx_reg(spi_d, data>>8);          // write high byte
-    while (spi_is_tx_empty(spi_d) == 0); // wait until TXE=1
-    while (spi_is_busy(spi_d) != 0);     // wait until BSY=0
+    while (spi_is_tx_empty(spi_d) == 0)  // wait until TXE=1
+        ;
+    while (spi_is_busy(spi_d) != 0)      // wait until BSY=0
+        ;
 	uint16_t ret = spi_rx_reg(spi_d)<<8; // read and shift high byte
     spi_tx_reg(spi_d, data);             // write low byte
-    while (spi_is_tx_empty(spi_d) == 0); // wait until TXE=1
-    while (spi_is_busy(spi_d) != 0);     // wait until BSY=0
+    while (spi_is_tx_empty(spi_d) == 0)  // wait until TXE=1
+        ;
+    while (spi_is_busy(spi_d) != 0)      // wait until BSY=0
+        ;
 	ret += spi_rx_reg(spi_d);            // read low byte
     return ret;
 }
