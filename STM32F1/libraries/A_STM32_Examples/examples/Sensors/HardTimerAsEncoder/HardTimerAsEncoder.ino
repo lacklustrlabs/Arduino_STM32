@@ -14,8 +14,8 @@
  * To test this library, make the connections as below: 
  * 
  * TIMER2 inputs -> Digital Pins used to simulate.
- * D2 -> D4
- * D3 -> D5
+ * D2 -> 1K Ohm -> D4
+ * D3 -> 1K Ohm -> D5
  * 
  * COUNTING DIRECTION: 
  * 0 means that it is upcounting, meaning that Channel A is leading Channel B
@@ -49,7 +49,7 @@ unsigned char states[4];       //because I'm lazy...
 
 HardwareTimer timer(2);
 
-unsigned long ints = 0;
+volatile unsigned long ints = 0;
 
 void func(){
 if (timer.getDirection()){
@@ -66,7 +66,9 @@ void setup() {
   pinMode(D3, INPUT_PULLUP);  //channel B
 
 //configure timer as encoder
-  timer.setMode(0, TIMER_ENCODER); //set mode, the channel is not used when in this mode. 
+  //set mode, the channel is not used when in this mode.
+  // You must, however, use a valid channel number.
+  timer.setMode(TIMER_CH1, TIMER_ENCODER); 
   timer.pause(); //stop... 
   timer.setPrescaleFactor(1); //normal for encoder to have the lowest or no prescaler. 
   timer.setOverflow(PPR);    //use this to match the number of pulse per revolution of the encoder. Most industrial use 1024 single channel steps. 
