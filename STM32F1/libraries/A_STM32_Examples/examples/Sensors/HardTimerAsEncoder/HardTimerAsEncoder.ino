@@ -29,6 +29,7 @@
  */
 
 #include "HardwareTimer.h"
+#define SOUT Serial
 
 //Encoder simulation stuff
 //NOT NEEDED WHEN CONNECTING A REAL ENCODER
@@ -56,9 +57,9 @@ void overflowInterrupt(){
 }
 
 void simulateStep(uint8_t step){
-  static const unsigned char states[] = {0,1,3,2};//{0b00,0b01,0b11,0b10};
-  digitalWrite(output_a, (states[step%4] & 0x01));
-  digitalWrite(output_b, (states[step%4] >> 1));
+  static const unsigned char states[] = {0,1,3,2}; //{0b00,0b01,0b11,0b10}; // 0bBA
+  digitalWrite(output_a, (states[step&3] & 0x01));
+  digitalWrite(output_b, (states[step&3] >> 1));
 }
 
 /*
@@ -83,13 +84,13 @@ void simulate() {
  * if received 3 - Mode 3 (Counts on both channels)
  * if received 4 - Change prescaler to 4
  * if received 0 - change prescaler to 1
- * if received - - Increase Speed
- * if received + - Decrease Speed
+ * if received - - Decrease Speed
+ * if received + - Increase Speed
 */
 
 //take care of comms...
-  if (Serial.available() > 0) {
-    char received = Serial.read();
+  if (SOUT.available() > 0) {
+    char received = SOUT.read();
     if (received == 'F' || received == 'R') dir = received; //direction. Forward or Reverse.
     if (received == '1') timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER1); //count only the pulses from input 1
     if (received == '2') timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER2); //count only the pulses from input 2
@@ -107,7 +108,7 @@ void simulate() {
   
   if ( millis() - lastSimulationAt >= updatePeriod) { 
     lastSimulationAt = millis(); //prepare next
-		
+    
     if (dir == 'F')  mode++;
     if (dir == 'R')  mode--;
 
@@ -116,8 +117,8 @@ void simulate() {
 }
 
 void setup() {
-  Serial.begin(115200);
-  while(!Serial)
+  SOUT.begin(115200);
+  while(!SOUT)
     ;
   //define the Timer channels as inputs. 
   pinMode(input_a, INPUT_PULLUP);  //channel A
@@ -133,6 +134,7 @@ void setup() {
   timer.setCount(0);          //reset the counter. 
   timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER3); //or TIMER_SMCR_SMS_ENCODER1 or TIMER_SMCR_SMS_ENCODER2. This uses both channels to count and ascertain direction. 
   timer.attachInterrupt(0, overflowInterrupt); //channel must be 0 here.  
+  
   timer.resume();                 //start the encoder... 
   
 //Setup encoder simulator  
@@ -145,14 +147,12 @@ void loop() {
   //encoder code
   static uint32_t lastMessageAt=0; //variable for status updates... 
   if (millis() - lastMessageAt >= 1000) { 
-    Serial.print(timer.getCount()); 
-    Serial.println(" counts");
-    Serial.print("direction ");
-    Serial.println(timer.getDirection());
-    //Serial.print(" should be ");
-    //Serial.println(dir=='F'?1:0);
-    Serial.print("Full Revs: ");
-    Serial.println(revolutions);
+    SOUT.print(timer.getCount()); 
+    SOUT.println(" counts");
+    SOUT.print("direction ");
+    SOUT.println(timer.getDirection());
+    SOUT.print("Full Revs: ");
+    SOUT.println(revolutions);
     lastMessageAt = millis();
   }
   
