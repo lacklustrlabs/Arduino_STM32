@@ -329,6 +329,9 @@ static void output_compare_mode(timer_dev *dev, uint8 channel) {
 //added by CARLOS.
 static void encoder_mode(timer_dev *dev, uint8 channel __attribute__((unused))) {
     
+    // Setup the timer registers according to the example
+    // at page 392 @ STM32F103 RM0008
+
     //prescaler. 
     //(dev->regs).gen->PSC = 1;
 
