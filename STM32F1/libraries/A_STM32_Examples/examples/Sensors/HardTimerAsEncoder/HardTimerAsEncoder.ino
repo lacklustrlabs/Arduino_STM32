@@ -14,8 +14,8 @@
  * To test this library, make the connections as below: 
  * 
  * TIMER2 inputs -> current limiting resistor -> Digital Pins used to simulate.
- * PA0 -> 1K Ohm -> D4
- * PA1 -> 1K Ohm -> D5
+ * PA0 -> 1K Ohm -> PA7/D4
+ * PA1 -> 1K Ohm -> PA6/D5
  * 
  * COUNTING DIRECTION: 
  * 0 means that it is upcounting, meaning that Channel A is leading Channel B
@@ -34,8 +34,8 @@
 //Encoder simulation stuff
 //NOT NEEDED WHEN CONNECTING A REAL ENCODER
 
-const uint8_t output_a = D4;
-const uint8_t output_b = D5;
+const uint8_t output_a = PA7; // D4
+const uint8_t output_b = PA6; // D5
 
 //Encoder stuff
 const uint8_t input_a = PA0; // D11 this should be the pin of timer 2 channel 1
@@ -69,6 +69,7 @@ ENCODER SIMULATION PART.
 */  
 void simulate() {
   static unsigned long updatePeriod = 100; //update period.
+  static const uint16_t periodDelta = 50;  //inc/dec updatePeriod with this 
   static unsigned long lastSimulationAt = 0;  //time variable for millis()
   static unsigned char mode = 0;  //to issue steps...
   static unsigned char dir = 'F'; // direction of movement of the encoder.
@@ -97,10 +98,10 @@ void simulate() {
     if (received == '3') timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER3); //count on both channels (default of the lib).
     if (received == '4') timer.setPrescaleFactor(4); //only updates on overflow, so you need to wait for an overflow. Not really used...  
     if (received == '0') timer.setPrescaleFactor(1); //only updates on overflow, so you need to wait for an overflow. 
-    if (received == '-') updatePeriod+=50; //decrease speed.
+    if (received == '-') updatePeriod+=periodDelta;  //decrease speed.
     if (received == '+') {
-      updatePeriod-=50;
-      if (updatePeriod <= 0) updatePeriod = 50; //smallest is 50 ms. 
+      if (updatePeriod <= periodDelta) updatePeriod = 50; //smallest is 50 ms. 
+      else updatePeriod-=periodDelta;
     }
   }
   
