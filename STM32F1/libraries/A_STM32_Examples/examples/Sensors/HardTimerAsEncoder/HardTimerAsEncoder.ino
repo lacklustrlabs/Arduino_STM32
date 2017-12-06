@@ -13,9 +13,9 @@
  * Attached is also a bit of code to simulate a quadrature encoder. 
  * To test this library, make the connections as below: 
  * 
- * TIMER2 inputs -> current limiting resistor -> Digital Pins used to simulate.
- * PA0/D11 -> 1K Ohm -> PA7/D4
- * PA1/D10 -> 1K Ohm -> PA6/D5
+ * TIMER4 inputs -> current limiting resistor -> Digital Pins used to simulate.
+ * PB6/D16 -> 1K Ohm -> PA7/D4
+ * PB7/D15 -> 1K Ohm -> PA6/D5
  * 
  * COUNTING DIRECTION: 
  * 0 means that it is upcounting, meaning that Channel A is leading Channel B
@@ -37,13 +37,13 @@ const uint8_t output_a = PA7; // D4
 const uint8_t output_b = PA6; // D5
 
 //Encoder stuff
-const uint8_t input_a = PA0; // D11 this should be the pin of timer 2 channel 1
-const uint8_t input_b = PA1; // D10 this should be the pin of timer 2 channel 2
+const uint8_t input_a = PB6; // D16 this should be the pin of timer 4 channel 1
+const uint8_t input_b = PB7; // D15 this should be the pin of timer 4 channel 2
 
 //Pulses per revolution
 #define PPR   1024
 
-HardwareTimer timer(2);
+HardwareTimer timer(4);
 
 volatile unsigned long revolutions = 0;
 
