@@ -14,8 +14,8 @@
  * To test this library, make the connections as below: 
  * 
  * TIMER2 inputs -> current limiting resistor -> Digital Pins used to simulate.
- * PA0 -> 1K Ohm -> PA7/D4
- * PA1 -> 1K Ohm -> PA6/D5
+ * PA0/D11 -> 1K Ohm -> PA7/D4
+ * PA1/D10 -> 1K Ohm -> PA6/D5
  * 
  * COUNTING DIRECTION: 
  * 0 means that it is upcounting, meaning that Channel A is leading Channel B
@@ -29,7 +29,6 @@
  */
 
 #include "HardwareTimer.h"
-#define SOUT Serial
 
 //Encoder simulation stuff
 //NOT NEEDED WHEN CONNECTING A REAL ENCODER
@@ -90,8 +89,8 @@ void simulate() {
 */
 
 //take care of comms...
-  if (SOUT.available() > 0) {
-    char received = SOUT.read();
+  if (Serial.available() > 0) {
+    char received = Serial.read();
     if (received == 'F' || received == 'R') dir = received; //direction. Forward or Reverse.
     if (received == '1') timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER1); //count only the pulses from input 1
     if (received == '2') timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER2); //count only the pulses from input 2
@@ -118,8 +117,8 @@ void simulate() {
 }
 
 void setup() {
-  SOUT.begin(115200);
-  while(!SOUT)
+  Serial.begin(115200);
+  while(!Serial)
     ;
   //define the Timer channels as inputs. 
   pinMode(input_a, INPUT_PULLUP);  //channel A
@@ -148,12 +147,12 @@ void loop() {
   //encoder code
   static uint32_t lastMessageAt=0; //variable for status updates... 
   if (millis() - lastMessageAt >= 1000) { 
-    SOUT.print(timer.getCount()); 
-    SOUT.println(" counts");
-    SOUT.print("direction ");
-    SOUT.println(timer.getDirection());
-    SOUT.print("Full Revs: ");
-    SOUT.println(revolutions);
+    Serial.print(timer.getCount()); 
+    Serial.println(" counts");
+    Serial.print("direction ");
+    Serial.println(timer.getDirection());
+    Serial.print("Full Revs: ");
+    Serial.println(revolutions);
     lastMessageAt = millis();
   }
   
