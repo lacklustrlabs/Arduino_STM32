@@ -329,24 +329,16 @@ static void output_compare_mode(timer_dev *dev, uint8 channel) {
 //added by CARLOS.
 static void encoder_mode(timer_dev *dev, uint8 channel __attribute__((unused))) {
     
-    // Setup the timer registers according to the example
-    // at page 392 @ STM32F103 RM0008
-
     //prescaler. 
     //(dev->regs).gen->PSC = 1;
 
     //map inputs. 
-    (dev->regs).gen->CCMR1 = TIMER_CCMR1_CC1S_INPUT_TI1 | TIMER_CCMR1_CC2S_INPUT_TI2;
-    // disable input capture filters
-    (dev->regs).gen->CCMR1 &= ~(TIMER_CCMR1_IC2F | TIMER_CCMR1_IC1F) ;
+    (dev->regs).gen->CCMR1 = TIMER_CCMR1_CC1S_INPUT_TI1 | TIMER_CCMR1_CC2S_INPUT_TI2 | TIMER_CCMR1_IC2F | TIMER_CCMR1_IC1F ;
 
     (dev->regs).gen->SMCR = TIMER_SMCR_SMS_ENCODER3; //choose encoder 3, counting on both edges. 
 
     //polarity
-
-    // to invert the counting, only one of the inputs should be inverted.
-    // set CCER_CC1P=0, CCER_CC2P=0 -> both channels active high
-    (dev->regs).gen->CCER &= (~TIMER_CCER_CC1P)&(~TIMER_CCER_CC2P);
+    //(dev->regs).gen->CCER = TIMER_CCER_CC1P; //to invert the counting, only one of the inputs should be inverted.  
 
     //set the interval used by the encoder.
     //timer_set_reload(dev, 1000);
