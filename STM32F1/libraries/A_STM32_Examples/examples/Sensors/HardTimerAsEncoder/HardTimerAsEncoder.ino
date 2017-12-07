@@ -45,7 +45,7 @@ const uint8_t input_b = PB7; // D15 this should be the pin of timer 4 channel 2
 
 HardwareTimer timer(4);
 
-volatile unsigned long revolutions = 0;
+volatile uint32_t revolutions = 0;
 
 void overflowInterrupt(){
   if (timer.getDirection()){
@@ -130,13 +130,14 @@ void setup() {
   timer.setMode(TIMER_CH1, TIMER_ENCODER); 
   timer.pause(); //stop... 
   timer.setPrescaleFactor(1); //normal for encoder to have the lowest or no prescaler. 
-  timer.setOverflow(PPR);    //use this to match the number of pulse per revolution of the encoder. Most industrial use 1024 single channel steps. 
+  timer.setOverflow(PPR);     //use this to match the number of pulse per revolution of the encoder. Most industrial use 1024 single channel steps. 
   timer.setCount(0);          //reset the counter. 
   timer.setEdgeCounting(TIMER_SMCR_SMS_ENCODER3); //or TIMER_SMCR_SMS_ENCODER1 or TIMER_SMCR_SMS_ENCODER2. This uses both channels to count and ascertain direction. 
+  timer.refresh();            // set the EGR::UG bit
   timer.attachInterrupt(0, overflowInterrupt); //channel must be 0 here.  
   
   timer.resume();                 //start the encoder... 
-  
+
 //Setup encoder simulator  
   pinMode(output_a, OUTPUT);
   pinMode(output_b, OUTPUT);
@@ -147,12 +148,13 @@ void loop() {
   //encoder code
   static uint32_t lastMessageAt=0; //variable for status updates... 
   if (millis() - lastMessageAt >= 1000) { 
+    Serial.print("Direction:");
+    Serial.print(timer.getDirection()?'R':'F');
+    Serial.print(", Full Revs: ");
+    Serial.print(revolutions);
+    Serial.print(", ");
     Serial.print(timer.getCount()); 
     Serial.println(" counts");
-    Serial.print("direction ");
-    Serial.println(timer.getDirection());
-    Serial.print("Full Revs: ");
-    Serial.println(revolutions);
     lastMessageAt = millis();
   }
   
