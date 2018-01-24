@@ -165,12 +165,14 @@ uint8 TwoWire::process(bool stop) {
 uint8 TwoWire::requestFrom(uint8_t address, uint8_t num_bytes,
     uint32_t iaddress, uint8_t isize, uint8_t sendStop) {
 
-  ASSERT(master);
+  if (!master) {
+    return 0; 
+  }
 
   allocateRxBuffer(num_bytes);
   // error if no memory block available to allocate the buffer
   if (rxBuffer == nullptr) {
-    return EDATA;
+    return 0;
   }
 
   // reset tx buffer iterator vars
