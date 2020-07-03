@@ -192,7 +192,7 @@ static void setup_adcs(void) {
 static void timer_default_config(timer_dev *dev) {
     timer_adv_reg_map *regs = (dev->regs).adv;
     const uint16 full_overflow = 0xFFFF;
-    const uint16 half_duty = 0x8FFF;
+    const uint16 half_duty = 0x7FFF; //  Half-Duty seems to be 0x7FFF, not 0x8FFF
 
     timer_init(dev);
     timer_pause(dev);
